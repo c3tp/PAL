@@ -14,6 +14,6 @@ setup(
     packages=find_packages(),
     install_requires=['Flask'],
     entry_points={
-        'console_scripts': ['pal=PAL.main:run']
+        'console_scripts': ['pal=pal.main:run']
     }
 )

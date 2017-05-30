@@ -8,7 +8,7 @@ def main(args):
     Args:
       args ([str]): command line parameter list
     """
-    print "Hi"
+    print("Hi")
 
 def run():
     """Entry point for console_scripts
