@@ -13,5 +13,7 @@ setup(
     url='https://github.com/c3tp/PAL',
     packages=find_packages(),
     install_requires=['Flask'],
-    entry_points={fibonacci = pal.main:run}
+    entry_points={
+        'console_scripts': ['pal=PAL.main:run']
+    }
 )
