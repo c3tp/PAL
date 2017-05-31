@@ -1,5 +1,5 @@
 import sys
-from flask import Flask
+import pal.authentication.auth_handler as auth_handler
 
 
 def main(args):
@@ -8,7 +8,10 @@ def main(args):
     Args:
       args ([str]): command line parameter list
     """
+    result = auth_handler.do_some_adding(1, 2)
     print("Hi")
+    print("Calling the abstract method generate a %d" % result)
+
 
 def run():
     """Entry point for console_scripts
