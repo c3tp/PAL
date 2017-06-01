@@ -1,5 +1,6 @@
 import sys
-from flask import Flask
+import pal.requests.request as pal_request
+import pal.authentication.dummy_strategy as dummy_strategy
 
 
 def main(args):
@@ -8,7 +9,9 @@ def main(args):
     Args:
       args ([str]): command line parameter list
     """
-    print("Hi")
+    strategy = dummy_strategy.DummyAuthenticationStrategy()
+    pal_request.generate_request(strategy, "lol", "wut")
+
 
 def run():
     """Entry point for console_scripts
