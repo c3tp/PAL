@@ -1,5 +1,6 @@
 import sys
-import pal.authentication.auth_handler as auth_handler
+import pal.requests.request as pal_request
+import pal.authentication.dummy_strategy as dummy_strategy
 
 
 def main(args):
@@ -8,9 +9,8 @@ def main(args):
     Args:
       args ([str]): command line parameter list
     """
-    result = auth_handler.do_some_adding(1, 2)
-    print("Hi")
-    print("Calling the abstract method generate a %d" % result)
+    strategy = dummy_strategy.DummyAuthenticationStrategy()
+    pal_request.generate_request(strategy, "lol", "wut")
 
 
 def run():
