@@ -20,6 +20,8 @@ setup(
         'boto3==1.4.4'
     ],
     entry_points={
-        'console_scripts': ['pal=pal.main:run']
+        'console_scripts': [
+            'pal=pal.main:run',
+            'palw=pal.webserver.routing:run']
     }
 )
