@@ -7,20 +7,22 @@ import pal.requests.client as client
 
 def download_file(s3_client: boto3.client, bucket, key):
     "Using an existing client, return a file from a bucket"
-    # TODO(Andreas)
-    return "stub"
+    s3_object = s3_client.get_object(Bucket=bucket, Key=key)
+    return s3_object
 
 
-def upload_file(s3_client: boto3.client, bucket, key):
-    # TODO(Andreas)
-    return "stub"
+def upload_file(s3_client: boto3.client, bucket, key, fileobject):
+    s3_client.upload_fileobj(fileobject, bucket, key)
 
 
 def generate_request(
         auth_strategy: auth_strats.AbstractAuthenticationStrategy,
         username: string,
         password: string):
-    __perform_a_bunch_of_actions(client.get_client(auth_strategy, username, password))
+    print("Generating a request")
+    s3_client = client.get_client(auth_strategy, username, password)
+    download_file(s3_client, 'bucket-1', 'auth-payload.json')
+    __perform_a_bunch_of_actions(s3_client)
 
 
 def __random_string(length=13):

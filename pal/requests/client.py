@@ -18,7 +18,10 @@ def get_client(
 
 
 def get_wos_client(key_id, key):
-    return get_raw_boto_client(defaults.S3_ENDPOINT, key_id=key_id, key=key)
+    return get_raw_boto_client(
+        s3_endpoint_url=defaults.S3_ENDPOINT,
+        key_id=key_id,
+        key=key)
 
 
 def get_raw_boto_client(s3_endpoint_url, key_id, key):
@@ -30,4 +33,5 @@ def get_raw_boto_client(s3_endpoint_url, key_id, key):
         endpoint_url=s3_endpoint_url,
         aws_access_key_id=key_id,
         aws_secret_access_key=key,
+        region_name='us-east-1',
         verify=False)
