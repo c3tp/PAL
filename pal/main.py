@@ -30,8 +30,6 @@ def main(args):
     client = pal_client.get_client(strategy, args['username'], args['password'])
 
     result = {
-        'upload': lambda b, k: pal_request.upload_file(client, b, k),
-        'download': lambda b, k: pal_request.download_file(client, b, k),
         'pre_upload': lambda b, k: pal_presigned.get_presigned_upload(client, b, k),
         'pre_download': lambda b, k: pal_presigned.get_presigned_download(client, b, k)
     }[args['command']](args['bucket'], args['key'])

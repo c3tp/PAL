@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
+import string
 import boto3
 import pal.config.defaults as defaults
 import pal.authentication.auth_strategy as auth_strats
 import pal.authentication.dummy_strategy as dummy_strategy
-import string
 
 
 def get_dummy_client():
     strategy = dummy_strategy.DummyAuthenticationStrategy()
     s3_client = get_client(strategy, "no", "thanks")
+    return s3_client
 
 
 def get_client(
