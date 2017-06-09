@@ -9,7 +9,7 @@ class AbstractAuthenticationStrategy(ABC):
     Abstract base class for different authentication strategies.
     Authentication strategies are for getting s3 auth tokens/names.
     """
-    def __init(self):
+    def __init__(self):
         "Initialization method"
         super(AbstractAuthenticationStrategy, self).__init__()
 
