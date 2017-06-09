@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import pal.requests.request as pal_request
 import pal.authentication.dummy_strategy as dummy_strategy

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 "An abstract base class for authentication strategies"
 
 from abc import ABC, abstractmethod
@@ -11,7 +11,6 @@ class AbstractAuthenticationStrategy(ABC):
     """
     def __init__(self):
         "Initialization method"
-        super(AbstractAuthenticationStrategy, self).__init__()
 
     @abstractmethod
     def authenticate(self, username, password):
