@@ -1,22 +1,29 @@
+#!/usr/bin/env python3
+
 import random
 import string
-
 import boto3
-
 import pal.authentication.auth_strategy as auth_strats
-import pal.config.defaults as defaults
+import pal.requests.client as client
+
+
+def download_file(s3_client: boto3.client, bucket, key):
+    "Using an existing client, return a file from a bucket"
+    s3_object = s3_client.get_object(Bucket=bucket, Key=key)
+    return s3_object
+
+
+def upload_file(s3_client: boto3.client, bucket, key, fileobject):
+    s3_client.upload_fileobj(fileobject, bucket, key)
 
 
 def generate_request(
         auth_strategy: auth_strats.AbstractAuthenticationStrategy,
         username: string,
         password: string):
-    key_id, key = auth_strategy.authenticate(username, password)
-    print("keys are %s: %s" % (key_id, key))
-    s3_client = __generate_client(
-        s3_endpoint_url=defaults.S3_ENDPOINT,
-        key_id=key_id,
-        key=key)
+    print("Generating a request")
+    s3_client = client.get_client(auth_strategy, username, password)
+    download_file(s3_client, 'bucket-1', 'auth-payload.json')
     __perform_a_bunch_of_actions(s3_client)
 
 
@@ -35,15 +42,6 @@ def __s3_bucket_name(prefix="c3tp-"):
     return prefix + __random_string(random.randint(min_length, max_length)).lower()
 
 
-def __generate_client(s3_endpoint_url, key_id, key):
-    return boto3.client(
-        service_name="s3",
-        endpoint_url=s3_endpoint_url,
-        aws_access_key_id=key_id,
-        aws_secret_access_key=key,
-        verify=False)
-
-
 def __perform_a_bunch_of_actions(s3_client):
     bucket_name = __s3_bucket_name()
     response = s3_client.list_buckets()
@@ -52,14 +50,3 @@ def __perform_a_bunch_of_actions(s3_client):
     print("Bucket List: %s" % buckets)
     s3_client.delete_bucket(Bucket=bucket_name)
 
-
-def test_request():
-    '''Create a bucket and try to list out all buckets, then delete it'''
-    print("Testing requests")
-    s3_client = boto3.client(
-        service_name="s3",
-        endpoint_url=defaults.S3_ENDPOINT,
-        verify=False)
-    response = s3_client.list_buckets()
-    buckets = [bucket['Name'] for bucket in response['Buckets']]
-    print("Bucket List: %s" % buckets)
