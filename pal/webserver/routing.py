@@ -45,15 +45,15 @@ def get_presigned_url(bucket_name: string, key_name: string):
 
 @app.route('/<string:bucket_name>/<string:key_name>/symlink', methods=['POST'])
 def build_symlink(bucket_name: string, key_name: string):
-    if 'targetkey' not in request.form or 'targetbucket' not in request.form:
+    if 'target' not in request.form:
         return "Invalid request, need targetkey and targetbucket for symlink"
     s3_client = __generate_client(request)
-    symlink_built = symlink.build_symlink(s3_client, bucket_name, key_name, request.form['targetbucket'], request.form['targetkey'])
+    symlink_built = symlink.build_symlink(s3_client, bucket_name, key_name, request.form['target'])
     if not symlink_built:
         return "Symlink was not built"
     return (
-        "Symlink created for target(%s:%s) from source(%s)"
-        % (request.form['targetbucket'], request.form['targetkey'], key_name)
+        "Symlink created for target(%s) from source(%s)"
+        % (request.form['target'], key_name)
     )
 
 # These paths are for fall through routing when we don't have something defined.
