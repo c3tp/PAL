@@ -16,10 +16,11 @@ def __create_symlink_object(s3_client, bucket_name, object_key, target):
     target_bucket, target_key = __parse_key_bucket(target)
     target_url = get_presigned_download(s3_client, target_bucket, target_key)
     return s3_client.put_object(
-        Body=str.encode(target_url),
+        Body=str.encode("/" + target),
         Key=object_key,
         Bucket=bucket_name,
         Metadata={
+            'mode': '41344',
             'symlink': target
             }
         )
