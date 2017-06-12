@@ -9,6 +9,8 @@ import pal.authentication.dummy_strategy as dummy_strategy
 import pal.requests.client as client
 import pal.requests.presigned as presigned
 import pal.requests.request as pal_request
+from pal.requests.target import SymlinkTargetSpec
+import pal.config.defaults as defaults
 import pal.requests.symlink as symlink
 from pal.config.defaults import WEBSITE_DEFAULT_DOMAIN
 
@@ -48,7 +50,8 @@ def build_symlink(bucket_name: string, key_name: string):
     if 'target' not in request.form:
         return "Invalid request, need targetkey and targetbucket for symlink"
     s3_client = __generate_client(request)
-    symlink_built = symlink.build_symlink(s3_client, bucket_name, key_name, request.form['target'])
+    symlink_target = SymlinkTargetSpec(request.form['target'], request.form['mount_point'])
+    symlink_built = symlink.build_symlink(s3_client, bucket_name, key_name, symlink_target)
     if not symlink_built:
         return "Symlink was not built"
     return (
