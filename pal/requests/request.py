@@ -14,7 +14,7 @@ def download_file(s3_client: boto3.client, bucket, key):
 
 
 def upload_file(s3_client: boto3.client, bucket, key, fileobject):
-    s3_client.upload_fileobj(fileobject, bucket, key)
+    s3_client.upload_file(fileobject, bucket, key)
 
 
 def generate_request(
