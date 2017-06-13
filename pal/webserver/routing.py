@@ -35,7 +35,7 @@ def download_object(bucket_name: string, key_name: string):
         object_key=key_name
     )
     return redirect(location=presigned_download_url, code=303)
-    
+
 # Add new routes for presigned url requests, without direct download
 
 
@@ -66,7 +66,8 @@ def build_symlink(bucket_name: string, key_name: string):
     if 'target' not in request.form:
         return "Invalid request, need targetkey and targetbucket for symlink"
     s3_client = __generate_client(request)
-    symlink_target = SymlinkTargetSpec(request.form['target'], request.form['mount_point'])
+    mount_point = None if 'mount_point' not in request.form else request.form['mount_point']
+    symlink_target = SymlinkTargetSpec(request.form['target'], mount_point)
     symlink_built = symlink.build_symlink(s3_client, bucket_name, key_name, symlink_target)
     if not symlink_built:
         return "Symlink was not built"
