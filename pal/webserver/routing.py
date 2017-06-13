@@ -3,19 +3,18 @@
 import string
 import sys
 
-from flask import Flask, jsonify, request, redirect, url_for
+from flask import Flask, jsonify, redirect, request, url_for
 
 import pal.authentication.dummy_strategy as dummy_strategy
+import pal.config.defaults as defaults
 import pal.requests.client as client
 import pal.requests.presigned as presigned
 import pal.requests.request as pal_request
-from pal.requests.target import SymlinkTargetSpec
-import pal.config.defaults as defaults
 import pal.requests.symlink as symlink
-from pal.config.defaults import WEBSITE_DEFAULT_DOMAIN
+from pal.requests.target import SymlinkTargetSpec
 
+routing_endpoint = None
 app = Flask(__name__)
-app.config['SERVER_NAME'] = WEBSITE_DEFAULT_DOMAIN
 
 
 @app.route('/')
@@ -27,7 +26,7 @@ def index():
 
 @app.route('/<string:bucket_name>/<string:key_name>', methods=['POST'])
 def download_object(bucket_name: string, key_name: string):
-    print("downloading object")
+    print("downloading object %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
     presigned_download_url = presigned.get_presigned_download(
         s3_client,
@@ -92,12 +91,13 @@ def catch_all_subdomain(path, subdomain):
 
 
 def __generate_client(request):
+    routing_endpoint = request.form['endpoint'] if 'endpoint' in request.form else defaults.S3_ENDPOINT
     if 'username' in request.form and 'password' in request.form:
         strategy = dummy_strategy.DummyAuthenticationStrategy()
         print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
-        return client.get_client(strategy, request.form['username'], request.form['password'])
+        return client.get_client(strategy, request.form['username'], request.form['password'], routing_endpoint)
     else:
-        return client.get_dummy_client()
+        return client.get_dummy_client(routing_endpoint)
 
 
 def main(args):

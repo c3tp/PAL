@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Create API For presigned URLS to objects"""
 
 import boto3
