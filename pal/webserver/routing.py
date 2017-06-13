@@ -3,7 +3,7 @@
 import string
 import sys
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect, url_for
 
 import pal.authentication.dummy_strategy as dummy_strategy
 import pal.requests.client as client
@@ -21,6 +21,22 @@ app.config['SERVER_NAME'] = WEBSITE_DEFAULT_DOMAIN
 @app.route('/')
 def index():
     return "Index"
+
+# Add new routes for default grabs
+
+
+@app.route('/<string:bucket_name>/<string:key_name>', methods=['POST'])
+def download_object(bucket_name: string, key_name: string):
+    print("downloading object")
+    s3_client = __generate_client(request)
+    presigned_download_url = presigned.get_presigned_download(
+        s3_client,
+        bucket_name,
+        object_key=key_name
+    )
+    return redirect(location=presigned_download_url, code=303)
+    
+# Add new routes for presigned url requests, without direct download
 
 
 @app.route('/<string:bucket_name>/<string:key_name>/presigned_post', methods=['POST'])
