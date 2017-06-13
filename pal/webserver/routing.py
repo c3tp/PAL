@@ -3,17 +3,17 @@
 import string
 import sys
 
-from flask import Flask, jsonify, redirect, request, url_for
-
+from flask import Flask, jsonify, redirect, request
 import pal.authentication.dummy_strategy as dummy_strategy
 import pal.config.defaults as defaults
+import pal.config.configure as configure
 import pal.requests.client as client
 import pal.requests.presigned as presigned
-import pal.requests.request as pal_request
 import pal.requests.symlink as symlink
 from pal.requests.target import SymlinkTargetSpec
 
-routing_endpoint = None
+# Module variables
+ROUTING_ENDPOINT = None
 app = Flask(__name__)
 
 
@@ -91,21 +91,18 @@ def catch_all_subdomain(path, subdomain):
 
 
 def __generate_client(request):
-    routing_endpoint = request.form['endpoint'] if 'endpoint' in request.form else defaults.S3_ENDPOINT
     if 'username' in request.form and 'password' in request.form:
         strategy = dummy_strategy.DummyAuthenticationStrategy()
         print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
-        return client.get_client(strategy, request.form['username'], request.form['password'], routing_endpoint)
+        return client.get_client(strategy, request.form['username'], request.form['password'], ROUTING_ENDPOINT)
     else:
-        return client.get_dummy_client(routing_endpoint)
+        return client.get_dummy_client(ROUTING_ENDPOINT)
 
 
 def main(args):
-    """Main entry point allowing external calls
-
-    Args:
-      args ([str]): command line parameter list
-    """
+    configs = configure.read_config()
+    global ROUTING_ENDPOINT
+    ROUTING_ENDPOINT = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
     app.run(host='0.0.0.0')
 
 
