@@ -17,7 +17,7 @@ def __create_symlink_object(s3_client, bucket_name, object_key, target):
         Bucket=bucket_name,
         Metadata={
             'mode': '41344',
-            'symlink': target
+            'symlink': target.target
             }
         )
 
