@@ -13,7 +13,6 @@ import pal.requests.symlink as symlink
 from pal.requests.target import SymlinkTargetSpec
 
 # Module variables
-ROUTING_ENDPOINT = None
 app = Flask(__name__)
 
 
@@ -42,15 +41,14 @@ def download_object(bucket_name: string, key_name: string):
 def get_presigned_post(bucket_name: string, key_name: string):
     print("presigned post: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
-    presigned_post = presigned.get_presigned_upload(
+    return presigned.get_presigned_upload(
         s3_client,
         bucket_name,
         object_key=key_name)
-    return jsonify(presigned_post)
 
 
-@app.route('/<string:bucket_name>/<string:key_name>/presigned_url', methods=['POST'])
-def get_presigned_url(bucket_name: string, key_name: string):
+@app.route('/<string:bucket_name>/<string:key_name>/presigned_get', methods=['POST'])
+def get_presigned_get(bucket_name: string, key_name: string):
     print("presigned url: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
     return presigned.get_presigned_download(
@@ -91,18 +89,18 @@ def catch_all_subdomain(path, subdomain):
 
 
 def __generate_client(request):
+    configs = configure.read_config()
+    routing_endpoint = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
+
     if 'username' in request.form and 'password' in request.form:
         strategy = dummy_strategy.DummyAuthenticationStrategy()
         print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
-        return client.get_client(strategy, request.form['username'], request.form['password'], ROUTING_ENDPOINT)
+        return client.get_client(strategy, request.form['username'], request.form['password'], routing_endpoint)
     else:
-        return client.get_dummy_client(ROUTING_ENDPOINT)
+        return client.get_dummy_client(routing_endpoint)
 
 
 def main(args):
-    configs = configure.read_config()
-    global ROUTING_ENDPOINT
-    ROUTING_ENDPOINT = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
     app.run(host='0.0.0.0')
 
 
