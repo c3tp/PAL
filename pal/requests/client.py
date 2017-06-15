@@ -13,6 +13,7 @@ def get_dummy_client(target_endpoint):
     s3_client = get_client(strategy, "dummy_user", "dummy_password", target_endpoint)
     return s3_client
 
+
 def get_basic_client(username: string, password: string, target_endpoint: string):
     strategy = basic_strategy.BasicAuthenticationStrategy()
     s3_client = get_client(strategy, username, password, target_endpoint)

@@ -24,7 +24,7 @@ class BasicAuthenticationStrategy(AbstractAuthenticationStrategy):
         configs = configure.read_config()
 
         # compare md5 of provided password against that mapped to the user
-        if (provided_md5 == configs[username]['password_md5']):
+        if provided_md5 == configs[username]['password_md5']:
             return configs[username]["access_key_id"], configs[username]["secret_access_key"]
         else:
             # I'm really just phoning it in here
