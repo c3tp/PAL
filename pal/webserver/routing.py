@@ -5,6 +5,7 @@ import sys
 
 from flask import Flask, jsonify, redirect, request
 import pal.authentication.dummy_strategy as dummy_strategy
+import pal.authentication.basic_strategy as basic_strategy
 import pal.config.defaults as defaults
 import pal.config.configure as configure
 import pal.requests.client as client
@@ -93,9 +94,8 @@ def __generate_client(request):
     routing_endpoint = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
 
     if 'username' in request.form and 'password' in request.form:
-        strategy = dummy_strategy.DummyAuthenticationStrategy()
         print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
-        return client.get_client(strategy, request.form['username'], request.form['password'], routing_endpoint)
+        return client.get_basic_client(request.form['username'], request.form['password'], routing_endpoint)
     else:
         return client.get_dummy_client(routing_endpoint)
 
