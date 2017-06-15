@@ -3,19 +3,17 @@
 import string
 import sys
 
-from flask import Flask, jsonify, request, redirect, url_for
-
+from flask import Flask, jsonify, redirect, request
 import pal.authentication.dummy_strategy as dummy_strategy
+import pal.config.defaults as defaults
+import pal.config.configure as configure
 import pal.requests.client as client
 import pal.requests.presigned as presigned
-import pal.requests.request as pal_request
-from pal.requests.target import SymlinkTargetSpec
-import pal.config.defaults as defaults
 import pal.requests.symlink as symlink
-from pal.config.defaults import WEBSITE_DEFAULT_DOMAIN
+from pal.requests.target import SymlinkTargetSpec
 
+# Module variables
 app = Flask(__name__)
-app.config['SERVER_NAME'] = WEBSITE_DEFAULT_DOMAIN
 
 
 @app.route('/')
@@ -27,7 +25,7 @@ def index():
 
 @app.route('/<string:bucket_name>/<string:key_name>', methods=['POST'])
 def download_object(bucket_name: string, key_name: string):
-    print("downloading object")
+    print("downloading object %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
     presigned_download_url = presigned.get_presigned_download(
         s3_client,
@@ -43,15 +41,14 @@ def download_object(bucket_name: string, key_name: string):
 def get_presigned_post(bucket_name: string, key_name: string):
     print("presigned post: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
-    presigned_post = presigned.get_presigned_upload(
+    return presigned.get_presigned_upload(
         s3_client,
         bucket_name,
         object_key=key_name)
-    return jsonify(presigned_post)
 
 
-@app.route('/<string:bucket_name>/<string:key_name>/presigned_url', methods=['POST'])
-def get_presigned_url(bucket_name: string, key_name: string):
+@app.route('/<string:bucket_name>/<string:key_name>/presigned_get', methods=['POST'])
+def get_presigned_get(bucket_name: string, key_name: string):
     print("presigned url: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
     return presigned.get_presigned_download(
@@ -92,21 +89,19 @@ def catch_all_subdomain(path, subdomain):
 
 
 def __generate_client(request):
+    configs = configure.read_config()
+    routing_endpoint = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
+
     if 'username' in request.form and 'password' in request.form:
         strategy = dummy_strategy.DummyAuthenticationStrategy()
         print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
-        return client.get_client(strategy, request.form['username'], request.form['password'])
+        return client.get_client(strategy, request.form['username'], request.form['password'], routing_endpoint)
     else:
-        return client.get_dummy_client()
+        return client.get_dummy_client(routing_endpoint)
 
 
 def main(args):
-    """Main entry point allowing external calls
-
-    Args:
-      args ([str]): command line parameter list
-    """
-    app.run(debug=True)
+    app.run(host='0.0.0.0')
 
 
 def run():
