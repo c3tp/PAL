@@ -3,7 +3,7 @@
 import string
 import sys
 
-from flask import Flask, jsonify, redirect, request
+from flask import Flask, jsonify, redirect, request, abort
 import pal.authentication.dummy_strategy as dummy_strategy
 import pal.authentication.basic_strategy as basic_strategy
 import pal.authorization.file_restrict as file_restrict
@@ -48,6 +48,8 @@ def release_object(bucket_name: string, key_name: string):
 @app.route('/<string:bucket_name>/<string:key_name>', methods=['POST'])
 def download_object(bucket_name: string, key_name: string):
     print("downloading object %s : %s" % (bucket_name, key_name))
+    if __not_allowed_access(request, bucket_name, key_name):
+        abort(403)
     s3_client = __generate_client(request)
     presigned_download_url = presigned.get_presigned_download(
         s3_client,
@@ -63,8 +65,8 @@ def download_object(bucket_name: string, key_name: string):
 def get_presigned_post(bucket_name: string, key_name: string):
     print("presigned post: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
-    if __not_allowed_access(bucket_name, key_name, request):
-        return "Sorry, you're not allowed."
+    if __not_allowed_access(request, bucket_name, key_name):
+        abort(403)
     return presigned.get_presigned_upload(
         s3_client,
         bucket_name,
@@ -75,8 +77,8 @@ def get_presigned_post(bucket_name: string, key_name: string):
 def get_presigned_get(bucket_name: string, key_name: string):
     print("presigned url: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
-    if __not_allowed_access(bucket_name, key_name, request):
-        return "Sorry, you're not allowed."
+    if __not_allowed_access(request, bucket_name, key_name):
+        abort(403)
     return presigned.get_presigned_download(
         s3_client,
         bucket_name,
@@ -88,6 +90,8 @@ def get_presigned_get(bucket_name: string, key_name: string):
 def build_symlink(bucket_name: string, key_name: string):
     if 'target' not in request.form:
         return "Invalid request, need targetkey and targetbucket for symlink"
+    if __not_allowed_access(request, bucket_name, key_name):
+        abort(403)
     s3_client = __generate_client(request)
     mount_point = None if 'mount_point' not in request.form else request.form['mount_point']
     symlink_target = SymlinkTargetSpec(request.form['target'], mount_point)
@@ -118,7 +122,7 @@ def __generate_client(request):
     configs = configure.read_config()
     routing_endpoint = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
 
-    if 'username' in request.form and 'password' in request.form:
+    if 'username' in request.form and 'password' in request.form and 'dummy' not in request.form:
         print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
         return client.get_basic_client(request.form['username'], request.form['password'], routing_endpoint)
     else:
@@ -128,7 +132,8 @@ def __generate_client(request):
 def __not_allowed_access(request, bucket, key):
     if 'username' not in request.form:
         return False
-    return file_restrict.can_access(request.form['bucket'], bucket, key)
+    result = file_restrict.can_access(request.form['username'], bucket, key)
+    return result
 
 
 def main(args):
