@@ -12,7 +12,6 @@ def read_config():
     with open(defaults.CONFIG_FILEPATH, 'r') as stream:
         try:
             config_map = yaml.load(stream)
-            print(config_map)
         except yaml.YAMLError as exc:
             print(exc)
         except FileNotFoundError as error:

@@ -26,7 +26,6 @@ def get_client(
         password: string,
         target_endpoint: string):
     key_id, key = auth_strategy.authenticate(username, password)
-    print("keys are %s: %s" % (key_id, key))
     return get_wos_client(
         key_id=key_id,
         key=key,

@@ -14,8 +14,28 @@ import pal.requests.presigned as presigned
 import pal.requests.symlink as symlink
 from pal.requests.target import SymlinkTargetSpec
 
+import logging
+from logging import handlers
+
+file_handler = logging.FileHandler('pal.log')
+file_handler.setLevel(logging.DEBUG)
+
+syslog_handler = logging.handlers.SysLogHandler(address='/dev/log')
+formatter = logging.Formatter('PAL: %(module)s.%(funcName)s: %(message)s')
+syslog_handler.setFormatter(formatter)
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    handlers=[file_handler,
+                              syslog_handler])
 # Module variables
+
+
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+app.logger.addHandler(file_handler)
+app.logger.addHandler(syslog_handler)
+app.logger.info("Logging is set up.")
 
 
 @app.route('/')
@@ -28,7 +48,7 @@ def index():
 
 @app.route('/<string:bucket_name>/<string:key_name>/restrict', methods=['POST'])
 def restrict_object(bucket_name: string, key_name: string):
-    print("Restricting object to  %s : %s" % (bucket_name, key_name))
+    app.logger.info("Restricting object to  %s : %s" % (bucket_name, key_name))
     if 'username' in request.form:
         return file_restrict.add_restrict(request.form['username'], bucket_name, key_name)
     return "Stub"
@@ -36,7 +56,7 @@ def restrict_object(bucket_name: string, key_name: string):
 
 @app.route('/<string:bucket_name>/<string:key_name>/release', methods=['POST'])
 def release_object(bucket_name: string, key_name: string):
-    print("Releasing object in  %s : %s" % (bucket_name, key_name))
+    app.logger.info("Releasing object in  %s : %s" % (bucket_name, key_name))
     if 'username' in request.form:
         return file_restrict.remove_restrict(request.form['username'], bucket_name, key_name)
     return "Stub"
@@ -47,7 +67,7 @@ def release_object(bucket_name: string, key_name: string):
 
 @app.route('/<string:bucket_name>/<string:key_name>', methods=['POST'])
 def download_object(bucket_name: string, key_name: string):
-    print("downloading object %s : %s" % (bucket_name, key_name))
+    app.logger.info("downloading object %s : %s" % (bucket_name, key_name))
     if __not_allowed_access(request, bucket_name, key_name):
         abort(403)
     s3_client = __generate_client(request)
@@ -63,7 +83,7 @@ def download_object(bucket_name: string, key_name: string):
 
 @app.route('/<string:bucket_name>/<string:key_name>/presigned_post', methods=['POST'])
 def get_presigned_post(bucket_name: string, key_name: string):
-    print("presigned post: getting bucket:key %s : %s" % (bucket_name, key_name))
+    app.logger.info("presigned post: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
     if __not_allowed_access(request, bucket_name, key_name):
         abort(403)
@@ -75,7 +95,7 @@ def get_presigned_post(bucket_name: string, key_name: string):
 
 @app.route('/<string:bucket_name>/<string:key_name>/presigned_get', methods=['POST'])
 def get_presigned_get(bucket_name: string, key_name: string):
-    print("presigned url: getting bucket:key %s : %s" % (bucket_name, key_name))
+    app.logger.info("presigned get: getting bucket:key %s : %s" % (bucket_name, key_name))
     s3_client = __generate_client(request)
     if __not_allowed_access(request, bucket_name, key_name):
         abort(403)
@@ -88,6 +108,7 @@ def get_presigned_get(bucket_name: string, key_name: string):
 
 @app.route('/<string:bucket_name>/<string:key_name>/symlink', methods=['POST'])
 def build_symlink(bucket_name: string, key_name: string):
+    app.logger.info("symlink building: from bucket:key %s : %s" % (bucket_name, key_name))
     if 'target' not in request.form:
         return "Invalid request, need targetkey and targetbucket for symlink"
     if __not_allowed_access(request, bucket_name, key_name):
@@ -123,7 +144,7 @@ def __generate_client(request):
     routing_endpoint = configs['routing_endpoint'] if 'routing_endpoint' in configs else defaults.S3_ENDPOINT
 
     if 'username' in request.form and 'password' in request.form and 'dummy' not in request.form:
-        print("signing in user: %s: %s" % (request.form['username'], request.form['password']))
+        app.logger.info("signing in user: %s: %s" % (request.form['username'], request.form['password']))
         return client.get_basic_client(request.form['username'], request.form['password'], routing_endpoint)
     else:
         return client.get_dummy_client(routing_endpoint)
