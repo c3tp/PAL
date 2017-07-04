@@ -1,22 +1,14 @@
 # PAL
 Platform Access Layer. 
 
-Requires a config file defined at /etc/pal.conf in yaml format. 
-
-
-must contain: 
-- "access_key_id"
-- "secret_access_key"
-- "routing_endpoint"
-yaml keys for your s3 access. 
-
-i.e.
+Requires a config file defined at `/etc/pal.conf` in YAML format which must define for basic authentication a user, keyed on their username, with attributes `password_md5`, `access_key_id` and `secret_access_key` for S3 access.  For example:
 
 ```
-access_key_id: your access key id. 
-secret_access_key: your secret access key. 
-routing_endpoint: http://127.0.0.1:9000
-
+routing_endpoint: some_url_to_an_s3_endpoint. 
+Frances:
+  password_md5: b63a52d38855ad89a14ff3c42f19d209
+  access_key_id: ABCDEF123456XYZSS3I
+  secret_access_key: Qu3Bl33pBl0rpad1ngd0ng+w1ngnutsRuSS/wrtM
 ```
 
 ## Basic Install Guide
@@ -32,19 +24,18 @@ routing_endpoint: https://s3-uvic.dev.computecanada.ca
 
 ### Run via docker
 
-Add a file at the root directory of this project named `pal.conf`
-with the above specification.
+Add a file at the root directory of this project named `pal.conf` with the above specification.
 
-Run
+Run:
 ```
 docker build . -t c3tp/pal
-docker run c3tp/pal --net=host -p 5000:5000
+docker run --net=host -p 5000:5000 c3tp/pal
 ```
 
-You now have pal running. 
-
+You now have PAL running. 
 
 ### Manual Install
+
 Install python3, virtualenv, and pip.
 
 ```
@@ -60,12 +51,8 @@ python setup.py install
 palw
 ```
 
-
-
-
-Above command just runs default action against WOS deployment with default token_id/token stored in config file
-in /etc/pal.conf
-
+The above command just runs default action against WOS deployment with default token_id/token stored in config file
+in `pal.conf`.
 
 ## Possible commands
 
@@ -81,3 +68,6 @@ curl -XPOST localsite:5000/peter/test.log/presigned_url -d "username=haha&passwo
 curl -XPOST localsite:5000/peter/test.log/presigned_post -d "username=haha&password=yup&dummy=True"
 curl -XPOST localsite:5000/peter/vis/symlink -d "username=haha&password=yup&target=peter/test.log&dummy=True"
 ```
+
+A better alternative is to use the PAL client and library.
+
